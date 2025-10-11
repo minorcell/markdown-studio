@@ -1,144 +1,79 @@
-const STORAGE_KEY = "macos-finder-state-v1";
-const IMAGE_PLACEHOLDER =
-  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAAACtWK6eAAAEK0lEQVR4nO3dQY7kQBBF0RrD/33TElgJ6E6HGZWrM9f9cU7Iv0d4hdEAAAAAAAAAAD8ZK4Cv+u9bg0DAAAAZk6YLHXw621n8AVQAIDTzcAWAACTDcAWAACTDcAWAACTDcAWAACTDcAWAACTDcAWAACTDcAWAACTDcAWAACTDcAWAACTDcAWAACTPc9Y+++41f1n8eav3qAAAwfplz3xD/uUv+abzgPwAA2OI5V6wDAKBxx1MDAADmHkzuAABg7gVgAAAw3AFgAAAw3AFgAAAw3AFgAAAw3AFgAAAw3AFgAAAw3AFgAAAw3AFgAAAw3AFgAAAw3AFgAAAw3AFgAAAw/0n7n09G9r9VX+ZJf86AAA49pdecQ4AAIwdTz0AAJhbM7kAAIA5FwAAAMNwBYAAAMNwBYAAAMNwBYAAAMNwBYAAAMNwBYAAAMNwBYAAAMNwBYAAAMNwBYAAAMNwBYAAAMNwBYAAAMNwBYAAAMNwBYAAAMN/0l73k7G9r9UX+aJP8+gAAOPaXnnEOAACMHU89AACYWzO5AACAOYMAAACGcwEAAIbzAQAAYbwAAACG8wEAAIbzAQAAYbwAAACG8wEAAIbzAQAAYbwAAACG8wEAAIbzAQAAYbwAAACG8wEAAIbzAQAAYbyf93zXV/f+ar/MEv+fQAAHHtLzzgHAAAjh6ceAABw17XnqFF17777PPLII1/2wjt/8YtjXOv06fPPPvssIyMjjzvuuEMfffTRRx999NHHH388lB0AAACc/Xr/Dnm2Cw/9dyTEMAAAAAAAAAAAoOsBjwi+1JNsPmMAAAAASUVORK5CYII=";
+const editor = document.getElementById("editor");
+const preview = document.getElementById("preview");
+const modeButtons = {
+  editor: document.getElementById("editor-only"),
+  split: document.getElementById("split-view"),
+  preview: document.getElementById("preview-only"),
+};
 
-function generateId() {
-  return `id-${Math.random().toString(36).slice(2, 10)}`;
-}
+const TAB = "  ";
 
-function now() {
-  return Date.now();
-}
+function extractDocumentTitle(markdown) {
+  const lines = markdown.replace(/\r\n?/g, "\n").split("\n");
+  let fallback = "";
 
-function createFolder(name, children = []) {
-  const timestamp = now();
-  return {
-    id: generateId(),
-    type: "folder",
-    name,
-    children,
-    createdAt: timestamp,
-    updatedAt: timestamp,
-  };
-}
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      continue;
+    }
 
-function createFile(name, { content = "", mime = "text/plain" } = {}) {
-  const timestamp = now();
-  return {
-    id: generateId(),
-    type: "file",
-    name,
-    content,
-    mime,
-    createdAt: timestamp,
-    updatedAt: timestamp,
-  };
-}
+    if (!fallback) {
+      fallback = trimmed;
+    }
 
-function getDefaultState() {
-  const documents = createFolder("文稿", [
-    createFile("欢迎来到 Finder.md", {
-      mime: "text/markdown",
-      content: `# 欢迎使用 Finder 风格的文件管理器\n\n- 左侧边栏浏览文件夹\n- 中间列表中双击文件夹即可进入\n- 选中文件后在右侧查看预览并编辑\n- 顶部工具栏支持新建、重命名和删除操作\n\n祝你探索愉快！`,
-    }),
-    createFile("会议纪要.txt", {
-      mime: "text/plain",
-      content: `项目：网页文件管理器\n日期：2024-05-20\n负责人：Alice\n\n进度：\n- ✅ 初版界面设计\n- ✅ 数据模型搭建\n- ⏳ 交互完善中`,
-    }),
-  ]);
-
-  const pictures = createFolder("图片", [
-    createFile("海边日落.png", {
-      mime: "image/png",
-      content: IMAGE_PLACEHOLDER,
-    }),
-  ]);
-
-  const projects = createFolder("Projects", [
-    createFile("roadmap.json", {
-      mime: "application/json",
-      content: JSON.stringify(
-        {
-          goals: ["Refine preview", "Add drag & drop", "Share links"],
-          owner: "Codex",
-          updated: new Date().toISOString(),
-        },
-        null,
-        2
-      ),
-    }),
-  ]);
-
-  const downloads = createFolder("下载");
-  const desktop = createFolder("桌面");
-
-  const root = createFolder("Macintosh HD", [
-    documents,
-    pictures,
-    projects,
-    desktop,
-    downloads,
-  ]);
-
-  return {
-    root,
-    currentFolderId: root.id,
-    selectedId: null,
-  };
-}
-
-function findNode(root, id) {
-  if (!root) return null;
-  if (root.id === id) return root;
-  if (root.type === "folder") {
-    for (const child of root.children) {
-      const found = findNode(child, id);
-      if (found) return found;
+    const headingMatch = trimmed.match(/^#{1,6}\s+(.*)$/);
+    if (headingMatch) {
+      const heading = headingMatch[1].trim();
+      if (heading) {
+        return heading;
+      }
     }
   }
-  return null;
+
+  return fallback || "document";
 }
 
-function findParent(root, id, parent = null) {
-  if (!root) return null;
-  if (root.id === id) {
-    return parent;
+function sanitizeFilename(value) {
+  const cleaned = value
+    .replace(/[\\/:*?"<>|]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!cleaned) {
+    return "document";
   }
-  if (root.type === "folder") {
-    for (const child of root.children) {
-      const result = findParent(child, id, root);
-      if (result) return result;
-    }
-  }
-  return null;
+
+  const limited = cleaned.length > 60 ? cleaned.slice(0, 60).trim() : cleaned;
+  return limited.replace(/\s+/g, "-");
 }
 
-function getPathToNode(node, targetId, path = []) {
-  if (!node) return null;
-  const nextPath = [...path, node];
-  if (node.id === targetId) {
-    return nextPath;
-  }
-  if (node.type === "folder") {
-    for (const child of node.children) {
-      const found = getPathToNode(child, targetId, nextPath);
-      if (found) return found;
-    }
-  }
-  return null;
-}
+const defaultMarkdown = `# 欢迎来到 Markdown Studio
 
-function sortItems(children = []) {
-  return [...children].sort((a, b) => {
-    if (a.type === b.type) {
-      return a.name.localeCompare(b.name, "zh-CN", { sensitivity: "base" });
-    }
-    return a.type === "folder" ? -1 : 1;
-  });
-}
+在左侧以 Markdown 语法创作内容，右侧会即时呈现排版后的效果。
 
-function escapeHtml(str = "") {
-  return str
+## 快速示例
+
+- **粗体** 与 *斜体*
+- 行内代码示例：
+  \`npm install\`
+- 多行代码：
+
+\`\`\`js
+function greet(name) {
+  console.log(\`Hi, ${name}!\`);
+}
+\`\`\`
+
+> Tip: 使用工具栏切换视图或导出文件。
+
+[了解 Markdown](https://markdown-guide.readthedocs.io/en/latest/)
+`;
+
+editor.value = defaultMarkdown;
+
+function escapeHtml(value) {
+  return value
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -146,597 +81,406 @@ function escapeHtml(str = "") {
     .replace(/'/g, "&#39;");
 }
 
-function formatDate(timestamp) {
-  if (!timestamp) return "-";
-  try {
-    return new Intl.DateTimeFormat("zh-CN", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(new Date(timestamp));
-  } catch (error) {
-    return new Date(timestamp).toLocaleString();
-  }
+function escapeAttribute(value) {
+  return escapeHtml(value).replace(/`/g, "&#96;");
 }
 
-function formatBytes(bytes) {
-  if (!Number.isFinite(bytes)) return "-";
-  const units = ["B", "KB", "MB", "GB"];
-  let index = 0;
-  let size = bytes;
-  while (size >= 1024 && index < units.length - 1) {
-    size /= 1024;
-    index += 1;
-  }
-  return `${size % 1 ? size.toFixed(1) : size.toFixed(0)} ${units[index]}`;
-}
+function renderInline(text) {
+  let result = escapeHtml(text);
 
-function estimateSizeFromContent(content = "") {
-  try {
-    return new TextEncoder().encode(content).length;
-  } catch (error) {
-    return content.length;
-  }
-}
-
-function detectMimeFromName(name = "") {
-  const ext = name.split(".").pop()?.toLowerCase();
-  switch (ext) {
-    case "md":
-      return "text/markdown";
-    case "txt":
-      return "text/plain";
-    case "json":
-      return "application/json";
-    case "js":
-    case "ts":
-    case "jsx":
-    case "tsx":
-    case "css":
-    case "html":
-      return "text/plain";
-    case "png":
-      return "image/png";
-    case "jpg":
-    case "jpeg":
-      return "image/jpeg";
-    default:
-      return "text/plain";
-  }
-}
-
-function defaultContentForMime(mime) {
-  if (mime === "application/json") {
-    return JSON.stringify({ new: true }, null, 2);
-  }
-  if (mime === "text/markdown") {
-    return `# 新建文档\n\n在此开始书写…`;
-  }
-  if (mime === "text/plain") {
-    return "";
-  }
-  return "";
-}
-
-function isTextFile(file) {
-  if (!file || file.type !== "file") return false;
-  return (
-    file.mime.startsWith("text/") ||
-    ["application/json", "application/xml"].includes(file.mime)
+  result = result.replace(
+    /!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]+)")?\)/g,
+    (_, alt, src, title) => {
+      const titleAttr = title ? ` title="${escapeAttribute(title)}"` : "";
+      return `<img src="${escapeAttribute(src)}" alt="${escapeAttribute(
+        alt
+      )}"${titleAttr} class="inline-image" />`;
+    }
   );
+
+  result = result.replace(
+    /\[([^\]]+)\]\(([^)\s]+)(?:\s+"([^"]+)")?\)/g,
+    (_, label, href, title) => {
+      const titleAttr = title ? ` title="${escapeAttribute(title)}"` : "";
+      return `<a href="${escapeAttribute(href)}"${titleAttr} target="_blank" rel="noopener noreferrer">${label}</a>`;
+    }
+  );
+
+  result = result.replace(/`([^`]+)`/g, (_, code) => `<code>${code}</code>`);
+  result = result.replace(/\*\*\*([^*]+)\*\*\*/g, (_, content) => `<strong><em>${content}</em></strong>`);
+  result = result.replace(/___([^_]+)___/g, (_, content) => `<strong><em>${content}</em></strong>`);
+  result = result.replace(/\*\*([^*]+)\*\*/g, (_, content) => `<strong>${content}</strong>`);
+  result = result.replace(/__([^_]+)__/g, (_, content) => `<strong>${content}</strong>`);
+  result = result.replace(/\*([^*]+)\*/g, (_, content) => `<em>${content}</em>`);
+  result = result.replace(/_([^_]+)_/g, (_, content) => `<em>${content}</em>`);
+  result = result.replace(/~~([^~]+)~~/g, (_, content) => `<del>${content}</del>`);
+
+  return result;
 }
 
-function isImageFile(file) {
-  return file?.type === "file" && file.mime.startsWith("image/");
-}
+function markdownToHtml(markdown, nested = false) {
+  const lines = markdown.replace(/\r\n?/g, "\n").split("\n");
+  const html = [];
+  let inCodeBlock = false;
+  let codeLang = "";
+  let codeLines = [];
+  let listType = null;
+  let paragraph = [];
 
-function deriveIconName(item) {
-  if (item.type === "folder") return "folder";
-  if (isImageFile(item)) return "image";
-  if (isTextFile(item)) {
-    const lower = item.name.toLowerCase();
-    if (/(json|js|ts|jsx|tsx|css|html)$/.test(lower)) {
-      return "code";
+  const closeList = () => {
+    if (listType) {
+      html.push(`</${listType}>`);
+      listType = null;
     }
-    return "text";
-  }
-  return "file";
-}
+  };
 
-function ensureUniqueName(folder, name) {
-  const siblings = folder.children?.map((item) => item.name) ?? [];
-  if (!siblings.includes(name)) return name;
-
-  const extIndex = name.lastIndexOf(".");
-  const base = extIndex > 0 ? name.slice(0, extIndex) : name;
-  const ext = extIndex > 0 ? name.slice(extIndex) : "";
-  let counter = 2;
-  let candidate = `${base} ${counter}${ext}`;
-  while (siblings.includes(candidate)) {
-    counter += 1;
-    candidate = `${base} ${counter}${ext}`;
-  }
-  return candidate;
-}
-
-class FileManagerApp {
-  constructor(rootElement) {
-    this.root = rootElement;
-    if (!this.root) {
-      throw new Error("未找到应用容器");
+  const flushParagraph = () => {
+    if (paragraph.length) {
+      html.push(`<p>${renderInline(paragraph.join(" "))}</p>`);
+      paragraph = [];
     }
-    this.statusTimer = null;
-    this.loadState();
-    this.renderShell();
-    this.bindEvents();
-    this.renderAll();
-  }
+  };
 
-  loadState() {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        this.state = JSON.parse(stored);
-        return;
-      }
-    } catch (error) {
-      console.warn("读取本地数据失败，使用默认数据", error);
-    }
-    this.state = getDefaultState();
-  }
+  for (let i = 0; i < lines.length; i += 1) {
+    const rawLine = lines[i];
+    const trimmed = rawLine.trim();
 
-  persistState() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
-    } catch (error) {
-      console.warn("保存到本地失败", error);
-    }
-  }
-
-  renderShell() {
-    this.root.innerHTML = `
-      <div class="finder-window">
-        <div class="titlebar">
-          <div class="traffic-lights">
-            <button class="close" aria-label="关闭窗口"></button>
-            <button class="minimize" aria-label="最小化窗口"></button>
-            <button class="fullscreen" aria-label="全屏窗口"></button>
-          </div>
-          <div class="title">Finder</div>
-        </div>
-        <div class="toolbar">
-          <div class="breadcrumb" data-role="breadcrumb"></div>
-          <div class="actions" data-role="actions">
-            <button data-action="new-folder">新建文件夹</button>
-            <button data-action="new-file">新建文件</button>
-            <button data-action="rename">重命名</button>
-            <button data-action="delete">删除</button>
-          </div>
-          <div class="status" data-role="status"></div>
-        </div>
-        <div class="main">
-          <aside class="sidebar" data-role="sidebar"></aside>
-          <section class="content-area" data-role="content"></section>
-          <section class="preview" data-role="preview"></section>
-        </div>
-      </div>
-    `;
-
-    this.elements = {
-      breadcrumb: this.root.querySelector('[data-role="breadcrumb"]'),
-      actions: this.root.querySelector('[data-role="actions"]'),
-      sidebar: this.root.querySelector('[data-role="sidebar"]'),
-      content: this.root.querySelector('[data-role="content"]'),
-      preview: this.root.querySelector('[data-role="preview"]'),
-      status: this.root.querySelector('[data-role="status"]'),
-    };
-  }
-
-  bindEvents() {
-    this.elements.actions.addEventListener("click", (event) => {
-      const action = event.target.dataset.action;
-      if (!action) return;
-      switch (action) {
-        case "new-folder":
-          this.createFolder();
-          break;
-        case "new-file":
-          this.createFile();
-          break;
-        case "rename":
-          this.renameSelection();
-          break;
-        case "delete":
-          this.removeSelection();
-          break;
-        default:
-          break;
-      }
-    });
-
-    this.elements.sidebar.addEventListener("click", (event) => {
-      const button = event.target.closest("[data-folder]");
-      if (!button) return;
-      this.openFolder(button.dataset.folder);
-    });
-
-    this.elements.breadcrumb.addEventListener("click", (event) => {
-      const crumb = event.target.closest("[data-breadcrumb]");
-      if (!crumb) return;
-      this.openFolder(crumb.dataset.breadcrumb);
-    });
-
-    this.elements.content.addEventListener("click", (event) => {
-      const tile = event.target.closest("[data-item-id]");
-      if (!tile) return;
-      const itemId = tile.dataset.itemId;
-      this.selectItem(itemId);
-    });
-
-    this.elements.content.addEventListener("dblclick", (event) => {
-      const tile = event.target.closest("[data-item-id]");
-      if (!tile) return;
-      const itemId = tile.dataset.itemId;
-      const target = this.getItem(itemId);
-      if (!target) return;
-      if (target.type === "folder") {
-        this.openFolder(itemId);
+    if (inCodeBlock) {
+      if (trimmed.startsWith("```") || trimmed === "~~~") {
+        html.push(
+          `<pre><code${codeLang ? ` class="language-${escapeAttribute(codeLang)}"` : ""}>${escapeHtml(
+            codeLines.join("\n")
+          )}\n</code></pre>`
+        );
+        inCodeBlock = false;
+        codeLang = "";
+        codeLines = [];
       } else {
-        this.selectItem(itemId);
+        codeLines.push(rawLine);
       }
-    });
+      continue;
+    }
 
-    this.elements.preview.addEventListener("input", (event) => {
-      if (event.target.matches("textarea[data-file-id]")) {
-        const form = event.target.closest("form[data-role='editor']");
-        const saveButton = form?.querySelector("button[type='submit']");
-        if (form) form.dataset.dirty = "true";
-        if (saveButton) saveButton.disabled = false;
+    if (!trimmed) {
+      flushParagraph();
+      closeList();
+      continue;
+    }
+
+    if (trimmed.startsWith("```") || trimmed.startsWith("~~~")) {
+      flushParagraph();
+      closeList();
+      inCodeBlock = true;
+      codeLang = trimmed.slice(3).trim();
+      continue;
+    }
+
+    const hrMatch = trimmed.match(/^([-*_])(\s*\1){2,}$/);
+    if (hrMatch) {
+      flushParagraph();
+      closeList();
+      html.push("<hr />");
+      continue;
+    }
+
+    const headingMatch = trimmed.match(/^(#{1,6})\s+(.*)$/);
+    if (headingMatch) {
+      flushParagraph();
+      closeList();
+      const level = headingMatch[1].length;
+      const content = headingMatch[2];
+      html.push(`<h${level}>${renderInline(content)}</h${level}>`);
+      continue;
+    }
+
+    if (trimmed.startsWith(">")) {
+      flushParagraph();
+      closeList();
+      const quoteLines = [];
+      let j = i;
+      while (j < lines.length && lines[j].trim().startsWith(">")) {
+        quoteLines.push(lines[j].trim().replace(/^>\s?/, ""));
+        j += 1;
       }
-    });
-
-    this.elements.preview.addEventListener("submit", (event) => {
-      if (!event.target.matches("form[data-role='editor']")) return;
-      event.preventDefault();
-      const textarea = event.target.querySelector("textarea[data-file-id]");
-      if (!textarea) return;
-      this.updateFileContent(textarea.dataset.fileId, textarea.value);
-      const saveButton = event.target.querySelector("button[type='submit']");
-      if (event.target) event.target.dataset.dirty = "false";
-      if (saveButton) saveButton.disabled = true;
-    });
-  }
-
-  renderAll() {
-    this.renderBreadcrumb();
-    this.renderSidebar();
-    this.renderContent();
-    this.renderPreview();
-    this.persistState();
-  }
-
-  get currentFolder() {
-    return findNode(this.state.root, this.state.currentFolderId);
-  }
-
-  get selection() {
-    if (!this.state.selectedId) return null;
-    return findNode(this.state.root, this.state.selectedId);
-  }
-
-  getItem(id) {
-    return findNode(this.state.root, id);
-  }
-
-  openFolder(folderId) {
-    const folder = this.getItem(folderId);
-    if (!folder || folder.type !== "folder") return;
-    this.state.currentFolderId = folderId;
-    this.state.selectedId = null;
-    this.renderAll();
-  }
-
-  selectItem(itemId) {
-    const target = this.getItem(itemId);
-    if (!target) return;
-    this.state.selectedId = itemId;
-    this.renderContent();
-    this.renderPreview();
-    this.persistState();
-  }
-
-  createFolder() {
-    const parent = this.currentFolder;
-    if (!parent || parent.type !== "folder") return;
-    let name = prompt("请输入文件夹名称", "新建文件夹");
-    if (name === null) return;
-    name = name.trim();
-    if (!name) {
-      this.flashMessage("名称不能为空");
-      return;
+      html.push(`<blockquote>${markdownToHtml(quoteLines.join("\n"), true)}</blockquote>`);
+      i = j - 1;
+      continue;
     }
-    name = ensureUniqueName(parent, name);
-    const folder = createFolder(name);
-    parent.children.push(folder);
-    this.touchPath(folder.id);
-    this.state.selectedId = folder.id;
-    this.renderAll();
-    this.flashMessage(`已创建文件夹“${name}”`);
-  }
 
-  createFile() {
-    const parent = this.currentFolder;
-    if (!parent || parent.type !== "folder") return;
-    let name = prompt("请输入文件名（包含扩展名）", "新建文稿.txt");
-    if (name === null) return;
-    name = name.trim();
-    if (!name) {
-      this.flashMessage("文件名不能为空");
-      return;
-    }
-    name = ensureUniqueName(parent, name);
-    const mime = detectMimeFromName(name);
-    const content = defaultContentForMime(mime);
-    const file = createFile(name, { mime, content });
-    parent.children.push(file);
-    this.touchPath(file.id);
-    this.state.selectedId = file.id;
-    this.renderAll();
-    this.flashMessage(`已创建文件“${name}”`);
-  }
-
-  renameSelection() {
-    const selected = this.selection;
-    if (!selected) {
-      this.flashMessage("请先选择一个项目");
-      return;
-    }
-    if (selected.id === this.state.root.id) {
-      this.flashMessage("无法重命名根目录");
-      return;
-    }
-    const currentName = selected.name;
-    let name = prompt("请输入新的名称", currentName);
-    if (name === null) return;
-    name = name.trim();
-    if (!name) {
-      this.flashMessage("名称不能为空");
-      return;
-    }
-    const parent = findParent(this.state.root, selected.id);
-    if (!parent) return;
-    if (parent.children.some((item) => item.name === name && item.id !== selected.id)) {
-      this.flashMessage("同名项目已存在");
-      return;
-    }
-    selected.name = name;
-    selected.updatedAt = now();
-    parent.updatedAt = now();
-    this.touchPath(selected.id);
-    this.renderAll();
-    this.flashMessage("名称已更新");
-  }
-
-  removeSelection() {
-    const selected = this.selection;
-    if (!selected) {
-      this.flashMessage("请先选择一个项目");
-      return;
-    }
-    if (selected.id === this.state.root.id) {
-      this.flashMessage("无法删除根目录");
-      return;
-    }
-    const parent = findParent(this.state.root, selected.id);
-    if (!parent) return;
-    const confirmed = confirm(`确定要删除“${selected.name}”吗？`);
-    if (!confirmed) return;
-    parent.children = parent.children.filter((item) => item.id !== selected.id);
-    parent.updatedAt = now();
-    if (this.state.selectedId === selected.id) {
-      this.state.selectedId = null;
-    }
-    this.touchPath(parent.id);
-    this.renderAll();
-    this.flashMessage("项目已删除");
-  }
-
-  updateFileContent(fileId, content) {
-    const file = this.getItem(fileId);
-    if (!file || file.type !== "file") return;
-    file.content = content;
-    file.updatedAt = now();
-    this.touchPath(file.id);
-    this.renderPreview();
-    this.persistState();
-    this.flashMessage("已保存修改");
-  }
-
-  touchPath(targetId) {
-    const path = getPathToNode(this.state.root, targetId);
-    if (!path) return;
-    const timestamp = now();
-    path.forEach((node) => {
-      node.updatedAt = timestamp;
-    });
-  }
-
-  renderSidebar() {
-    const root = this.state.root;
-    const buildButtons = (folder, depth = 0) => {
-      const isActive = folder.id === this.state.currentFolderId;
-      const icon = depth === 0 ? "💻" : "📁";
-      let markup = `
-        <button class="sidebar-item ${isActive ? "active" : ""}" data-folder="${folder.id}" style="--depth:${depth}">
-          <span class="dot"></span>
-          <span aria-hidden="true">${icon}</span>
-          <span class="name">${folder.name}</span>
-        </button>
-      `;
-      if (folder.children?.length) {
-        folder.children
-          .filter((item) => item.type === "folder")
-          .forEach((child) => {
-            markup += buildButtons(child, depth + 1);
-          });
+    const unorderedMatch = rawLine.match(/^\s*[-+*]\s+(.*)$/);
+    if (unorderedMatch) {
+      flushParagraph();
+      if (listType !== "ul") {
+        closeList();
+        listType = "ul";
+        html.push("<ul>");
       }
-      return markup;
-    };
-
-    this.elements.sidebar.innerHTML = `
-      <div class="sidebar-section">
-        <h2>位置</h2>
-        ${buildButtons(root)}
-      </div>
-    `;
-  }
-
-  renderBreadcrumb() {
-    const path = getPathToNode(this.state.root, this.state.currentFolderId) ?? [
-      this.state.root,
-    ];
-    const markup = path
-      .map((node, index) => {
-        const active = index === path.length - 1;
-        return `
-          <button class="${active ? "active" : ""}" data-breadcrumb="${node.id}">
-            ${node.name}
-          </button>
-        `;
-      })
-      .join('<span class="separator">›</span>');
-    this.elements.breadcrumb.innerHTML = markup;
-  }
-
-  renderContent() {
-    const folder = this.currentFolder;
-    if (!folder || folder.type !== "folder") return;
-    const items = sortItems(folder.children);
-    const tiles = items
-      .map((item) => {
-        const selected = item.id === this.state.selectedId;
-        const icon = deriveIconName(item);
-        return `
-          <article class="file-item ${selected ? "selected" : ""}" data-item-id="${item.id}" data-type="${item.type}">
-            <div class="file-icon ${icon} ${item.type}">
-              ${item.type === "folder" ? "📁" : "📄"}
-            </div>
-            <div class="file-name" title="${escapeHtml(item.name)}">${escapeHtml(
-          item.name
-        )}</div>
-          </article>
-        `;
-      })
-      .join("");
-
-    this.elements.content.innerHTML = `
-      <div class="content-header">
-        <div class="title">${folder.name}</div>
-        <div class="meta">${items.length} 个项目</div>
-      </div>
-      <div class="file-grid">
-        ${tiles || '<div class="empty-state">这个文件夹目前是空的，点击上方按钮新建文件或文件夹。</div>'}
-      </div>
-    `;
-  }
-
-  renderPreview() {
-    const selection = this.selection;
-    if (!selection) {
-      this.elements.preview.innerHTML = `
-        <div class="preview-empty">
-          选择一个项目后即可在此查看详细信息与预览。
-        </div>
-      `;
-      return;
+      html.push(`<li>${renderInline(unorderedMatch[1])}</li>`);
+      continue;
     }
 
-    const icon = deriveIconName(selection);
-    const metadataEntries = [
-      { label: "类型", value: selection.type === "folder" ? "文件夹" : selection.mime },
-      { label: "创建时间", value: formatDate(selection.createdAt) },
-      { label: "修改时间", value: formatDate(selection.updatedAt) },
-    ];
-
-    if (selection.type === "file") {
-      const size = estimateSizeFromContent(selection.content);
-      metadataEntries.push({ label: "大小", value: formatBytes(size) });
-    } else {
-      const count = selection.children?.length ?? 0;
-      metadataEntries.push({ label: "包含项目", value: `${count} 个` });
+    const orderedMatch = rawLine.match(/^\s*\d+\.\s+(.*)$/);
+    if (orderedMatch) {
+      flushParagraph();
+      if (listType !== "ol") {
+        closeList();
+        listType = "ol";
+        html.push("<ol>");
+      }
+      html.push(`<li>${renderInline(orderedMatch[1])}</li>`);
+      continue;
     }
 
-    const metadata = metadataEntries
-      .map(
-        ({ label, value }) => `
-          <div>
-            <div class="label">${label}</div>
-            <div>${escapeHtml(String(value))}</div>
-          </div>
-        `
-      )
-      .join("");
-
-    let body = "";
-    if (selection.type === "folder") {
-      body = `
-        <div class="preview-blob">双击中间文件夹可继续浏览，或在此文件夹中新建项目。</div>
-      `;
-    } else if (isImageFile(selection)) {
-      body = `
-        <div class="preview-image">
-          <img src="${selection.content}" alt="${escapeHtml(selection.name)}" />
-        </div>
-      `;
-    } else if (isTextFile(selection)) {
-      body = `
-        <form data-role="editor">
-          <textarea data-file-id="${selection.id}" spellcheck="false">${escapeHtml(
-        selection.content
-      )}</textarea>
-          <div class="preview-actions">
-            <button type="submit" disabled>保存</button>
-          </div>
-        </form>
-      `;
-    } else {
-      body = `
-        <div class="preview-blob">当前文件类型暂不支持预览，请下载后在本地打开。</div>
-      `;
-    }
-
-    this.elements.preview.innerHTML = `
-      <div class="preview-header">
-        <div class="file-icon ${icon} ${selection.type}">
-          ${selection.type === "folder" ? "📁" : "📄"}
-        </div>
-        <div class="info">
-          <div class="name">${escapeHtml(selection.name)}</div>
-          <div class="meta">${selection.type === "folder" ? "文件夹" : selection.mime}</div>
-        </div>
-      </div>
-      <div class="preview-body">
-        ${body}
-        <div class="preview-metadata">${metadata}</div>
-      </div>
-    `;
+    closeList();
+    paragraph.push(trimmed);
   }
 
-  flashMessage(text) {
-    const el = this.elements.status;
-    if (!el) return;
-    el.textContent = text;
-    el.classList.add("visible");
-    clearTimeout(this.statusTimer);
-    this.statusTimer = setTimeout(() => {
-      el.classList.remove("visible");
-      el.textContent = "";
-    }, 2000);
+  flushParagraph();
+  closeList();
+
+  const filteredHtml = html.filter(Boolean);
+  if (!filteredHtml.length) {
+    if (nested) {
+      return "";
+    }
+    return '<div class="empty-state">开始输入 Markdown 查看实时预览</div>';
+  }
+
+  return filteredHtml.join("\n");
+}
+
+function updatePreview() {
+  const content = editor.value.trim();
+  const html = markdownToHtml(content);
+  preview.innerHTML = html;
+  if (window.hljs) {
+    preview.querySelectorAll("pre code").forEach((block) => {
+      window.hljs.highlightElement(block);
+    });
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  new FileManagerApp(document.getElementById("app"));
+function removeLeadingIndent(line) {
+  if (!line.length) {
+    return { line, removed: 0 };
+  }
+
+  if (line.startsWith("\t")) {
+    return { line: line.slice(1), removed: 1 };
+  }
+
+  if (line.startsWith(TAB)) {
+    return { line: line.slice(TAB.length), removed: TAB.length };
+  }
+
+  const spaces = line.match(/^ +/);
+  if (spaces) {
+    const removeCount = Math.min(TAB.length, spaces[0].length);
+    return { line: line.slice(removeCount), removed: removeCount };
+  }
+
+  return { line, removed: 0 };
+}
+
+function handleTabKey(event) {
+  if (event.key !== "Tab") {
+    return;
+  }
+
+  event.preventDefault();
+
+  const start = editor.selectionStart;
+  const end = editor.selectionEnd;
+  const value = editor.value;
+  const hasSelection = start !== end;
+  const selectedText = value.slice(start, end);
+  const isMultiLineSelection = hasSelection && selectedText.includes("\n");
+
+  if (!event.shiftKey && (!hasSelection || !isMultiLineSelection)) {
+    const insertion = TAB;
+    editor.value = value.slice(0, start) + insertion + value.slice(end);
+    const caret = start + insertion.length;
+    editor.setSelectionRange(caret, caret);
+    editor.dispatchEvent(new Event("input"));
+    return;
+  }
+
+  if (isMultiLineSelection) {
+    const blockStart = value.lastIndexOf("\n", start - 1) + 1;
+    const blockEndCandidate = value.indexOf("\n", end);
+    const blockEnd = blockEndCandidate === -1 ? value.length : blockEndCandidate;
+    const block = value.slice(blockStart, blockEnd);
+    const lines = block.split("\n");
+
+    if (!event.shiftKey) {
+      let offset = blockStart;
+      let addedBeforeEnd = 0;
+      const indentedLines = lines.map((line) => {
+        if (offset < end) {
+          addedBeforeEnd += TAB.length;
+        }
+        const indentedLine = line.length ? TAB + line : TAB;
+        offset += line.length + 1;
+        return indentedLine;
+      });
+      const indentedBlock = indentedLines.join("\n");
+      editor.value = value.slice(0, blockStart) + indentedBlock + value.slice(blockEnd);
+      const newStart = start + TAB.length;
+      const newEnd = end + addedBeforeEnd;
+      editor.setSelectionRange(newStart, newEnd);
+      editor.dispatchEvent(new Event("input"));
+      return;
+    }
+
+    let offset = blockStart;
+    let removedBeforeStart = 0;
+    let removedBeforeEnd = 0;
+    let totalRemoved = 0;
+    const dedentedLines = lines.map((line, index) => {
+      const { line: trimmed, removed } = removeLeadingIndent(line);
+      totalRemoved += removed;
+      if (index === 0) {
+        const startOffset = Math.max(0, start - blockStart);
+        removedBeforeStart = Math.min(removed, startOffset);
+      }
+      if (offset < end) {
+        const endOffset = Math.max(0, end - offset);
+        removedBeforeEnd += Math.min(removed, endOffset);
+      }
+      offset += line.length + 1;
+      return trimmed;
+    });
+
+    const dedentedBlock = dedentedLines.join("\n");
+    editor.value = value.slice(0, blockStart) + dedentedBlock + value.slice(blockEnd);
+    const newStart = start - removedBeforeStart;
+    const newEnd = end - removedBeforeEnd;
+    editor.setSelectionRange(newStart, newEnd);
+    if (totalRemoved) {
+      editor.dispatchEvent(new Event("input"));
+    }
+    return;
+  }
+
+  if (event.shiftKey && !hasSelection) {
+    const lineStart = value.lastIndexOf("\n", start - 1) + 1;
+    const lineEndCandidate = value.indexOf("\n", start);
+    const lineEnd = lineEndCandidate === -1 ? value.length : lineEndCandidate;
+    const line = value.slice(lineStart, lineEnd);
+    const { line: trimmed, removed } = removeLeadingIndent(line);
+    if (!removed) {
+      return;
+    }
+    editor.value = value.slice(0, lineStart) + trimmed + value.slice(lineEnd);
+    const caret = start - Math.min(removed, start - lineStart);
+    editor.setSelectionRange(caret, caret);
+    editor.dispatchEvent(new Event("input"));
+  }
+}
+
+function setActiveMode(mode) {
+  document.body.classList.remove(
+    "mode-editor-only",
+    "mode-preview-only",
+    "mode-split"
+  );
+  Object.values(modeButtons).forEach((button) => {
+    button.setAttribute("aria-pressed", "false");
+  });
+
+  if (mode === "editor") {
+    document.body.classList.add("mode-editor-only");
+    modeButtons.editor.setAttribute("aria-pressed", "true");
+  } else if (mode === "preview") {
+    document.body.classList.add("mode-preview-only");
+    modeButtons.preview.setAttribute("aria-pressed", "true");
+  } else {
+    document.body.classList.add("mode-split");
+    modeButtons.split.setAttribute("aria-pressed", "true");
+  }
+}
+
+function downloadBlob(filename, blob) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function exportMarkdown() {
+  const content = editor.value;
+  const documentTitle = extractDocumentTitle(content);
+  const filename = `${sanitizeFilename(documentTitle)}.md`;
+  const blob = new Blob([content], { type: "text/markdown;charset=utf-8" });
+  downloadBlob(filename, blob);
+}
+
+function exportHtml() {
+  const documentTitle = extractDocumentTitle(editor.value);
+  const filename = `${sanitizeFilename(documentTitle)}.html`;
+  const htmlContent = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>${escapeHtml(documentTitle)}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+<style>
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 760px; margin: 64px auto; line-height: 1.7; color: #1d1d1f; padding: 0 24px; }
+  pre { background: #f5f5f7; padding: 16px; border-radius: 12px; overflow-x: auto; }
+  code { font-family: 'SF Mono', 'Menlo', 'Consolas', monospace; }
+  blockquote { border-left: 4px solid rgba(60,60,67,0.3); padding: 0.6em 1.2em; margin: 1.4em 0; background: rgba(142,142,147,0.12); border-radius: 0 12px 12px 0; color: rgba(60,60,67,0.8); }
+  table { border-collapse: collapse; width: 100%; margin: 1.6em 0; }
+  th, td { border: 1px solid rgba(0,0,0,0.07); padding: 10px 12px; text-align: left; }
+  th { background: rgba(142,142,147,0.12); }
+  .inline-image { max-width: 100%; height: auto; display: block; margin: 0.8em auto; border-radius: 10px; border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 6px 20px rgba(0,0,0,0.08); background: #fff; }
+  a { color: #0a84ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+${markdownToHtml(editor.value)}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    if (window.hljs) {
+      window.hljs.highlightAll();
+    }
+  });
+</script>
+</body>
+</html>`;
+
+  const blob = new Blob([htmlContent], { type: "text/html;charset=utf-8" });
+  downloadBlob(filename, blob);
+}
+
+editor.addEventListener("input", () => {
+  updatePreview();
+  localStorage.setItem("markdown-studio-content", editor.value);
 });
+
+editor.addEventListener("keydown", handleTabKey);
+
+modeButtons.editor.addEventListener("click", () => setActiveMode("editor"));
+modeButtons.split.addEventListener("click", () => setActiveMode("split"));
+modeButtons.preview.addEventListener("click", () => setActiveMode("preview"));
+
+document.getElementById("export-markdown").addEventListener("click", exportMarkdown);
+document.getElementById("export-html").addEventListener("click", exportHtml);
+
+(function restoreContent() {
+  const saved = localStorage.getItem("markdown-studio-content");
+  if (saved) {
+    editor.value = saved;
+  }
+})();
+
+setActiveMode("split");
+updatePreview();
