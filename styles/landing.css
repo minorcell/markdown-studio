@@ -83,11 +83,12 @@ body {
   align-items: center;
 }
 
-.nav-brand h1 {
+.nav-title {
   font-size: 21px;
   font-weight: var(--font-weight-semibold);
   letter-spacing: -0.021em;
   color: var(--color-text-primary);
+  text-decoration: none;
 }
 
 .nav-actions {
@@ -465,7 +466,7 @@ body {
     padding: 0 var(--spacing-sm);
   }
 
-  .nav-brand h1 {
+  .nav-title {
     font-size: 17px;
   }
 
