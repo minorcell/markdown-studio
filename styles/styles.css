@@ -394,6 +394,17 @@ body.sidebar-hidden .preview-pane {
   flex: 1 1 auto;
 }
 
+/* In split mode with sidebar hidden, ensure two equal columns without squeeze */
+body.sidebar-hidden.mode-split .workspace {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: 1fr;
+}
+body.sidebar-hidden.mode-split .editor-pane,
+body.sidebar-hidden.mode-split .preview-pane {
+  min-width: 0;
+}
+
 .file-tree {
   display: block;
   margin: 4px 0 0;

@@ -581,10 +581,82 @@ document.getElementById("export-html").addEventListener("click", exportHtml);
 
 setActiveMode("split");
 updatePreview();
+// Attempt to restore previously opened directory
+restoreDirectoryIfPossible();
 
 // --- File System Access API integration ---
 let currentFileHandle = null;
 let currentDirectoryHandle = null;
+
+// --- Persist directory handle via IndexedDB ---
+const DB_NAME = "markdown-studio";
+const DB_VERSION = 1;
+const STORE_FS = "fs-handles";
+
+function openDb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(STORE_FS)) {
+        db.createObjectStore(STORE_FS);
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function saveDirectoryHandle(handle) {
+  try {
+    const db = await openDb();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_FS, "readwrite");
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+      const store = tx.objectStore(STORE_FS);
+      store.put(handle, "directory");
+    });
+  } catch (e) {
+    console.warn("保存目录句柄失败", e);
+  }
+}
+
+async function loadDirectoryHandle() {
+  try {
+    const db = await openDb();
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_FS, "readonly");
+      tx.onerror = () => reject(tx.error);
+      const store = tx.objectStore(STORE_FS);
+      const req = store.get("directory");
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
+    });
+  } catch (e) {
+    console.warn("加载目录句柄失败", e);
+    return null;
+  }
+}
+
+async function restoreDirectoryIfPossible() {
+  if (!fsSupported()) return;
+  try {
+    const handle = await loadDirectoryHandle();
+    if (!handle) return;
+    const perm = await handle.queryPermission({ mode: "read" });
+    if (perm === "granted") {
+      await buildFileTree(handle);
+      return;
+    }
+    const req = await handle.requestPermission({ mode: "read" });
+    if (req === "granted") {
+      await buildFileTree(handle);
+    }
+  } catch (e) {
+    console.warn("恢复目录失败", e);
+  }
+}
 
 function fsSupported() {
   return (
@@ -632,6 +704,8 @@ async function buildFileTree(dirHandle) {
   fileTreeEl.innerHTML = "";
   const rootLabel = dirHandle.name || "已选择目录";
   currentRootEl.textContent = rootLabel;
+  // Persist chosen directory for next visits
+  saveDirectoryHandle(dirHandle);
   for await (const entry of dirHandle.values()) {
     try {
       if (entry.kind === "file") {
