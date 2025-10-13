@@ -33,6 +33,8 @@
   - 多行选择时可批量缩进/反缩进，光标位置与选区会被合理更新
 - 持久化：
   - 自动将内容保存到 `localStorage` 的 `markdown-studio-content` 键
+  - 记住侧栏显示/隐藏状态
+  - 记住最近打开的目录（依赖浏览器的 File System Access API 与 IndexedDB；若权限允许会在加载时自动恢复）
 
 ## 快速开始
 

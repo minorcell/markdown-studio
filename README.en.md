@@ -33,6 +33,8 @@ A lightweight, browser-based Markdown editing and preview demo. No build or back
   - Multi-line selections support batch indent/outdent; cursor and selection update appropriately
 - Persistence:
   - Automatically saves content to `localStorage` under the `markdown-studio-content` key
+  - Remembers sidebar visibility
+  - Restores the last opened directory (uses the File System Access API + IndexedDB; if permission is granted, the directory will auto-restore on load)
 
 ## Quick Start
 
