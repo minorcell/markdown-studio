@@ -391,7 +391,8 @@ body.sidebar-hidden .sidebar-pane {
 }
 body.sidebar-hidden .editor-pane,
 body.sidebar-hidden .preview-pane {
-  flex: 1 1 auto;
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .file-tree {

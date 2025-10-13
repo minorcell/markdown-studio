@@ -594,6 +594,74 @@ function fsSupported() {
   );
 }
 
+// --- Persist and restore last opened directory ---
+const DIR_DB_NAME = "markdown-studio-db";
+const DIR_STORE = "dir-store";
+
+function openDirDb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DIR_DB_NAME, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(DIR_STORE)) {
+        db.createObjectStore(DIR_STORE);
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function persistDirectoryHandle(handle) {
+  try {
+    const db = await openDirDb();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(DIR_STORE, "readwrite");
+      tx.objectStore(DIR_STORE).put(handle, "lastDir");
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+    db.close();
+  } catch (e) {
+    // ignore
+  }
+}
+
+async function restoreDirectoryHandle() {
+  try {
+    const db = await openDirDb();
+    const handle = await new Promise((resolve, reject) => {
+      const tx = db.transaction(DIR_STORE, "readonly");
+      const req = tx.objectStore(DIR_STORE).get("lastDir");
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
+    });
+    db.close();
+    if (!handle) return null;
+    const perm = await handle.queryPermission({ mode: "read" });
+    if (perm === "granted") {
+      return handle;
+    }
+    try {
+      const granted = await handle.requestPermission({ mode: "read" });
+      if (granted === "granted") return handle;
+    } catch (e) {}
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
+
+(async function tryRestoreDirectory() {
+  if (!fsSupported() || typeof indexedDB === "undefined") return;
+  const handle = await restoreDirectoryHandle();
+  if (handle) {
+    await buildFileTree(handle);
+  } else {
+    currentRootEl.textContent = "未选择目录 (可点击“打开目录”进行持久化)";
+  }
+})();
+
 async function readFileHandle(fileHandle) {
   const file = await fileHandle.getFile();
   const text = await file.text();
@@ -656,6 +724,13 @@ async function openDirectory() {
   try {
     const dirHandle = await window.showDirectoryPicker();
     await buildFileTree(dirHandle);
+    // Attempt to persist directory handle for restoration
+    try {
+      const granted = await dirHandle.requestPermission({ mode: "read" });
+      if (granted === "granted") {
+        await persistDirectoryHandle(dirHandle);
+      }
+    } catch (e) {}
   } catch (err) {
     if (err && err.name === "AbortError") return;
     console.error(err);
@@ -781,9 +856,22 @@ deleteFileBtn.addEventListener("click", async () => {
   }
 });
 
+// Persist sidebar visibility state across sessions
+const SIDEBAR_STATE_KEY = "markdown-studio-sidebar-hidden";
+try {
+  const persistedHidden = localStorage.getItem(SIDEBAR_STATE_KEY);
+  if (persistedHidden === "true") {
+    document.body.classList.add("sidebar-hidden");
+    toggleSidebarBtn.textContent = "显示侧栏";
+  }
+} catch (e) {}
+
 toggleSidebarBtn.addEventListener("click", () => {
   const hidden = document.body.classList.toggle("sidebar-hidden");
   toggleSidebarBtn.textContent = hidden ? "显示侧栏" : "隐藏侧栏";
+  try {
+    localStorage.setItem(SIDEBAR_STATE_KEY, hidden ? "true" : "false");
+  } catch (e) {}
 });
 
 // --- Synced scrolling in split mode ---
