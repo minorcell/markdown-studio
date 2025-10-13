@@ -4,6 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Markdown Studio - 优雅的 Markdown 编辑器</title>
+    <meta name="description" content="Markdown Studio 是一个优雅的在线 Markdown 编辑器，支持实时预览、语法高亮与一键导出，适配 GitHub Pages 部署。" />
+    <meta name="keywords" content="Markdown, 编辑器, 在线编辑, 语法高亮, 实时预览, GitHub Pages" />
+    <meta name="author" content="Markdown Studio" />
+    <link rel="canonical" href="https://minorcell.github.io/web-demos/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Markdown Studio - 优雅的 Markdown 编辑器" />
+    <meta property="og:description" content="优雅的 Markdown 编辑体验，实时预览、语法高亮、一键导出。" />
+    <meta property="og:url" content="https://minorcell.github.io/web-demos/" />
+    <meta property="og:image" content="https://minorcell.github.io/web-demos/assets/og-cover.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Markdown Studio - 优雅的 Markdown 编辑器" />
+    <meta name="twitter:description" content="优雅的 Markdown 编辑体验，实时预览、语法高亮、一键导出。" />
+    <meta name="twitter:image" content="https://minorcell.github.io/web-demos/assets/og-cover.png" />
     <link rel="stylesheet" href="styles/landing.css" />
   </head>
   <body>
@@ -12,7 +25,7 @@
       <nav class="navbar">
         <div class="nav-content">
           <div class="nav-brand">
-            <h1>Markdown Studio</h1>
+            <a href="index.html" class="nav-title" aria-label="返回首页">Markdown Studio</a>
           </div>
           <div class="nav-actions">
             <a href="pages/editor.html" class="btn btn-primary">在线使用</a>
@@ -20,10 +33,11 @@
         </div>
       </nav>
 
-      <!-- 英雄区域 -->
-      <section class="hero">
+      <main class="page-main" role="main">
+        <!-- 英雄区域 -->
+        <section class="hero">
         <div class="hero-content">
-          <h2 class="hero-title">优雅的 Markdown 编辑体验</h2>
+          <h1 class="hero-title">优雅的 Markdown 编辑体验</h1>
           <p class="hero-subtitle">
             实时预览、语法高亮、一键导出。让写作变得更简单、更高效。
           </p>
@@ -61,10 +75,10 @@
             </div>
           </div>
         </div>
-      </section>
+        </section>
 
-      <!-- 特性介绍 -->
-      <section id="features" class="features">
+        <!-- 特性介绍 -->
+        <section id="features" class="features">
         <div class="features-content">
           <h2 class="section-title">为什么选择 Markdown Studio</h2>
           <div class="features-grid">
@@ -100,10 +114,10 @@
             </div>
           </div>
         </div>
-      </section>
+        </section>
 
-      <!-- 使用场景 -->
-      <section class="use-cases">
+        <!-- 使用场景 -->
+        <section class="use-cases">
         <div class="use-cases-content">
           <h2 class="section-title">适用场景</h2>
           <div class="use-cases-grid">
@@ -125,16 +139,16 @@
             </div>
           </div>
         </div>
-      </section>
+        </section>
 
-      <!-- CTA 区域 -->
-      <section class="cta">
+        <!-- CTA 区域 -->
+        <section class="cta">
         <div class="cta-content">
           <h2>准备好开始了吗？</h2>
           <p>立即体验 Markdown Studio，享受流畅的写作体验</p>
           <a href="pages/editor.html" class="btn btn-large btn-primary">免费使用</a>
         </div>
-      </section>
+        </section>
 
       <!-- 页脚 -->
       <footer class="footer">
@@ -144,8 +158,9 @@
         </div>
       </footer>
     </div>
+    <!-- Scripts: moved inside body and marked as defer for valid structure and non-blocking load -->
+    <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+    <script defer src="scripts/landing.js"></script>
   </body>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-  <script src="scripts/landing.js"></script>
 </html>
