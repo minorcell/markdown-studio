@@ -385,6 +385,15 @@ textarea#editor:focus {
   overflow: auto;
 }
 
+/* Toggle: hide sidebar */
+body.sidebar-hidden .sidebar-pane {
+  display: none;
+}
+body.sidebar-hidden .editor-pane,
+body.sidebar-hidden .preview-pane {
+  flex: 1 1 auto;
+}
+
 .file-tree {
   display: block;
   margin: 4px 0 0;
