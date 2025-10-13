@@ -60,13 +60,10 @@ function sanitizeFilename(value) {
 
 const defaultMarkdown = `# 欢迎来到 Markdown Studio
 
-在左侧以 Markdown 语法创作内容，右侧会即时呈现排版后的效果。
-
 ## 快速示例
 
 - **粗体** 与 *斜体*
-- 行内代码示例：
-  \`npm install\`
+- 行内代码示例： \`npm install\`
 - 多行代码：
 
 \`\`\`js

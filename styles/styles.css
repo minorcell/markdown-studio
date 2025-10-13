@@ -389,6 +389,7 @@ textarea#editor:focus {
 body.sidebar-hidden .sidebar-pane {
   display: none;
 }
+/* Ensure editor/preview expand evenly when sidebar is hidden */
 body.sidebar-hidden .editor-pane,
 body.sidebar-hidden .preview-pane {
   flex: 1 1 0;

@@ -33,8 +33,8 @@
   - 多行选择时可批量缩进/反缩进，光标位置与选区会被合理更新
 - 持久化：
   - 自动将内容保存到 `localStorage` 的 `markdown-studio-content` 键
-  - 记住侧栏显示/隐藏状态
-  - 记住最近打开的目录（依赖浏览器的 File System Access API 与 IndexedDB；若权限允许会在加载时自动恢复）
+  - 记住侧栏显示/隐藏状态（按钮切换会被记录）
+  - 记住最近打开的目录（File System Access API + IndexedDB，权限允许时自动恢复）
 
 ## 快速开始
 
@@ -47,11 +47,16 @@
 
 ```
 web-demos/
-├─ index.html     # 应用入口（中文界面，含工具栏与双栏布局）
-├─ styles.css     # UI 样式（分屏布局、预览样式、代码区样式等）
-├─ main.js        # 解析、渲染、视图切换、导出与键盘交互逻辑
-└─ README.md      # 当前文档（中文）
-└─ README.en.md   # 英文文档（English）
+├─ index.html          # 首页（介绍与入口）
+├─ pages/
+│  └─ editor.html      # 编辑器页面（工具栏、侧栏、分屏布局）
+├─ scripts/
+│  └─ main.js          # 解析、渲染、视图切换、导出、目录持久化与交互逻辑
+├─ styles/
+│  ├─ landing.css      # 首页样式
+│  └─ styles.css       # 编辑器样式（分屏布局、预览样式、代码区样式等）
+├─ README.md           # 中文文档
+└─ README.en.md        # 英文文档（English）
 ```
 
 ## 技术说明
