@@ -1,5 +1,7 @@
 # Markdown Studio
 
+[English (README.en.md)](README.en.md) · 中文说明
+
 一个基于浏览器的轻量级 Markdown 编辑与预览示例应用。无需构建与后端服务，直接用本地浏览器打开即可使用。
 
 - 实时预览：边写边看，所见即所得
@@ -47,6 +49,7 @@ web-demos/
 ├─ styles.css     # UI 样式（分屏布局、预览样式、代码区样式等）
 ├─ main.js        # 解析、渲染、视图切换、导出与键盘交互逻辑
 └─ README.md      # 当前文档（中文）
+└─ README.en.md   # 英文文档（English）
 ```
 
 ## 技术说明
@@ -69,4 +72,3 @@ web-demos/
 ## 贡献
 
 欢迎提交 Issue 与 PR 改进解析能力、交互体验与样式设计。
-
