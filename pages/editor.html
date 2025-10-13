@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Markdown Studio</title>
+    <link rel="stylesheet" href="../styles/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css"
+    />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="toolbar">
+        <div class="toolbar-group toolbar-branding">
+          <div class="traffic-lights" aria-hidden="true">
+            <span class="light red"></span>
+            <span class="light amber"></span>
+            <span class="light green"></span>
+          </div>
+          <h1 class="toolbar-title">Markdown Studio</h1>
+        </div>
+        <div class="toolbar-group toolbar-actions" aria-label="编辑器操作">
+          <div class="segmented-control" role="group" aria-label="查看模式">
+            <button id="editor-only" class="segmented-button" type="button" aria-pressed="false">仅编辑</button>
+            <button id="split-view" class="segmented-button" type="button" aria-pressed="true">分屏</button>
+            <button id="preview-only" class="segmented-button" type="button" aria-pressed="false">仅预览</button>
+          </div>
+          <div class="divider" aria-hidden="true"></div>
+          <button id="export-markdown" class="toolbar-button" type="button">导出 Markdown</button>
+          <button id="export-html" class="toolbar-button" type="button">导出 HTML</button>
+        </div>
+      </header>
+      <main class="workspace">
+        <section class="pane editor-pane" aria-label="Markdown 编辑器">
+          <header class="pane-header">
+            <span class="pane-title">Markdown</span>
+            <span class="pane-subtitle">以 Markdown 语法编写内容</span>
+          </header>
+          <textarea id="editor" spellcheck="false"></textarea>
+        </section>
+        <section class="pane preview-pane" aria-live="polite" aria-label="预览">
+          <header class="pane-header">
+            <span class="pane-title">预览</span>
+            <span class="pane-subtitle">实时渲染效果</span>
+          </header>
+          <article id="preview" class="preview-content"></article>
+        </section>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../scripts/main.js"></script>
+  </body>
+</html>
