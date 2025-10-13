@@ -11,6 +11,10 @@ const openFolderBtn = document.getElementById("open-folder");
 const openFileBtn = document.getElementById("open-file");
 const saveFileBtn = document.getElementById("save-file");
 const saveAsBtn = document.getElementById("save-as");
+const newFileBtn = document.getElementById("new-file");
+const deleteFileBtn = document.getElementById("delete-file");
+const toggleSidebarBtn = document.getElementById("toggle-sidebar");
+const sidebarPane = document.querySelector(".sidebar-pane");
 
 const TAB = "  ";
 
@@ -131,6 +135,8 @@ function markdownToHtml(markdown, nested = false) {
   let codeLang = "";
   let codeLines = [];
   let listType = null;
+  let inTable = false;
+  let tableRows = [];
   let paragraph = [];
 
   const closeList = () => {
@@ -168,6 +174,13 @@ function markdownToHtml(markdown, nested = false) {
     }
 
     if (!trimmed) {
+      // flush table if open
+      if (inTable) {
+        const tableHtml = renderTable(tableRows);
+        if (tableHtml) html.push(tableHtml);
+        inTable = false;
+        tableRows = [];
+      }
       flushParagraph();
       closeList();
       continue;
@@ -183,6 +196,12 @@ function markdownToHtml(markdown, nested = false) {
 
     const hrMatch = trimmed.match(/^([-*_])(\s*\1){2,}$/);
     if (hrMatch) {
+      if (inTable) {
+        const tableHtml = renderTable(tableRows);
+        if (tableHtml) html.push(tableHtml);
+        inTable = false;
+        tableRows = [];
+      }
       flushParagraph();
       closeList();
       html.push("<hr />");
@@ -191,6 +210,12 @@ function markdownToHtml(markdown, nested = false) {
 
     const headingMatch = trimmed.match(/^(#{1,6})\s+(.*)$/);
     if (headingMatch) {
+      if (inTable) {
+        const tableHtml = renderTable(tableRows);
+        if (tableHtml) html.push(tableHtml);
+        inTable = false;
+        tableRows = [];
+      }
       flushParagraph();
       closeList();
       const level = headingMatch[1].length;
@@ -215,6 +240,12 @@ function markdownToHtml(markdown, nested = false) {
 
     const unorderedMatch = rawLine.match(/^\s*[-+*]\s+(.*)$/);
     if (unorderedMatch) {
+      if (inTable) {
+        const tableHtml = renderTable(tableRows);
+        if (tableHtml) html.push(tableHtml);
+        inTable = false;
+        tableRows = [];
+      }
       flushParagraph();
       if (listType !== "ul") {
         closeList();
@@ -227,6 +258,12 @@ function markdownToHtml(markdown, nested = false) {
 
     const orderedMatch = rawLine.match(/^\s*\d+\.\s+(.*)$/);
     if (orderedMatch) {
+      if (inTable) {
+        const tableHtml = renderTable(tableRows);
+        if (tableHtml) html.push(tableHtml);
+        inTable = false;
+        tableRows = [];
+      }
       flushParagraph();
       if (listType !== "ol") {
         closeList();
@@ -237,12 +274,43 @@ function markdownToHtml(markdown, nested = false) {
       continue;
     }
 
+    // Table detection: pipes with at least one '|' and aligned row separator
+    if (/^\|.*\|$/.test(trimmed)) {
+      // Possible header or data row
+      const next = lines[i + 1] ? lines[i + 1].trim() : "";
+      const isSep = /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(next);
+      if (!inTable) {
+        // start table
+        inTable = true;
+        tableRows = [];
+      }
+      tableRows.push(trimmed);
+      // consume separator line if present on next iteration
+      if (isSep) {
+        tableRows.push(next);
+        i += 1;
+      }
+      continue;
+    } else if (inTable) {
+      // close table when encountering non-table content
+      const tableHtml = renderTable(tableRows);
+      if (tableHtml) html.push(tableHtml);
+      inTable = false;
+      tableRows = [];
+    }
+
     closeList();
     paragraph.push(trimmed);
   }
 
   flushParagraph();
   closeList();
+
+  // Flush any open table
+  if (inTable) {
+    const tableHtml = renderTable(tableRows);
+    if (tableHtml) html.push(tableHtml);
+  }
 
   const filteredHtml = html.filter(Boolean);
   if (!filteredHtml.length) {
@@ -253,6 +321,29 @@ function markdownToHtml(markdown, nested = false) {
   }
 
   return filteredHtml.join("\n");
+}
+
+function renderTable(rows) {
+  if (!rows || rows.length < 2) return "";
+  const [headerLine, sepOrData] = rows;
+  const isSeparator = /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(sepOrData);
+  const header = (isSeparator ? headerLine : rows[0])
+    .replace(/^\||\|$/g, "")
+    .split("|")
+    .map((c) => c.trim());
+  const startIndex = isSeparator ? 2 : 1;
+  const dataRows = rows.slice(startIndex).map((line) =>
+    line
+      .replace(/^\||\|$/g, "")
+      .split("|")
+      .map((c) => c.trim())
+  );
+
+  const thead = `<thead><tr>${header.map((h) => `<th>${renderInline(h)}</th>`).join("")}</tr></thead>`;
+  const tbody = `<tbody>${dataRows
+    .map((r) => `<tr>${r.map((c) => `<td>${renderInline(c)}</td>`).join("")}</tr>`)
+    .join("")}</tbody>`;
+  return `<table>${thead}${tbody}</table>`;
 }
 
 function updatePreview() {
@@ -651,3 +742,103 @@ openFolderBtn.addEventListener("click", openDirectory);
 openFileBtn.addEventListener("click", openFile);
 saveFileBtn.addEventListener("click", saveFile);
 saveAsBtn.addEventListener("click", saveAs);
+newFileBtn.addEventListener("click", async () => {
+  try {
+    if (!currentDirectoryHandle) {
+      alert("请先打开一个目录再新建文件。");
+      return;
+    }
+    const suggestedName = `${sanitizeFilename(extractDocumentTitle(editor.value))}.md`;
+    const name = prompt("输入新文件名:", suggestedName) || suggestedName;
+    const handle = await currentDirectoryHandle.getFileHandle(name, { create: true });
+    await saveToHandle(handle);
+    currentFileHandle = handle;
+    await buildFileTree(currentDirectoryHandle);
+    alert("新建并保存成功。");
+  } catch (err) {
+    console.error(err);
+    alert("新建文件失败: " + (err && err.message ? err.message : err));
+  }
+});
+
+deleteFileBtn.addEventListener("click", async () => {
+  try {
+    if (!currentFileHandle || !currentDirectoryHandle) {
+      alert("请先选择要删除的文件。");
+      return;
+    }
+    const name = currentFileHandle.name;
+    if (!confirm(`确定删除文件: ${name} ?`)) return;
+    await currentDirectoryHandle.removeEntry(name);
+    currentFileHandle = null;
+    editor.value = "";
+    updatePreview();
+    await buildFileTree(currentDirectoryHandle);
+    alert("已删除文件。");
+  } catch (err) {
+    console.error(err);
+    alert("删除文件失败: " + (err && err.message ? err.message : err));
+  }
+});
+
+toggleSidebarBtn.addEventListener("click", () => {
+  const hidden = document.body.classList.toggle("sidebar-hidden");
+  toggleSidebarBtn.textContent = hidden ? "显示侧栏" : "隐藏侧栏";
+});
+
+// --- Synced scrolling in split mode ---
+let isSyncingScroll = false;
+let lastScrollSource = null; // 'editor' | 'preview'
+
+function inSplitMode() {
+  return document.body.classList.contains("mode-split");
+}
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function getScrollRatio(el) {
+  const max = el.scrollHeight - el.clientHeight;
+  if (max <= 0) return 0;
+  return clamp(el.scrollTop / max, 0, 1);
+}
+
+function setScrollRatio(el, ratio) {
+  const max = el.scrollHeight - el.clientHeight;
+  el.scrollTop = Math.round(max * clamp(ratio, 0, 1));
+}
+
+function syncScroll(source) {
+  if (!inSplitMode()) return;
+  if (isSyncingScroll && lastScrollSource === source) return;
+  isSyncingScroll = true;
+  lastScrollSource = source;
+  try {
+    const ratio = source === "editor" ? getScrollRatio(editor) : getScrollRatio(preview);
+    if (source === "editor") {
+      setScrollRatio(preview, ratio);
+    } else {
+      setScrollRatio(editor, ratio);
+    }
+  } finally {
+    // Use microtask to allow scrollTop to settle
+    Promise.resolve().then(() => {
+      isSyncingScroll = false;
+    });
+  }
+}
+
+editor.addEventListener("scroll", () => syncScroll("editor"));
+preview.addEventListener("scroll", () => syncScroll("preview"));
+
+// Ensure mode change keeps scroll listeners effective
+// Recompute when switching modes
+const originalSetActiveMode = setActiveMode;
+setActiveMode = function patchedSetActiveMode(mode) {
+  originalSetActiveMode(mode);
+  // After mode change, do a one-shot sync to align positions
+  if (mode === "split") {
+    syncScroll("editor");
+  }
+};
