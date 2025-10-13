@@ -378,6 +378,54 @@ textarea#editor:focus {
   text-align: center;
 }
 
+/* Sidebar for file tree */
+.sidebar-pane {
+  flex: 0 0 260px;
+  max-width: 320px;
+  overflow: auto;
+}
+
+.file-tree {
+  display: block;
+  margin: 4px 0 0;
+  padding: 0;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-primary);
+}
+
+.file-item:hover {
+  background: rgba(0,0,0,0.04);
+}
+
+.file-item.active {
+  background: white;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+}
+
+.file-icon {
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.file-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 12px;
+}
+
 @media (max-width: 960px) {
   .app-shell {
     width: 100%;

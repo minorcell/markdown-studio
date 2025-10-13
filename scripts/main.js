@@ -5,6 +5,12 @@ const modeButtons = {
   split: document.getElementById("split-view"),
   preview: document.getElementById("preview-only"),
 };
+const fileTreeEl = document.getElementById("file-tree");
+const currentRootEl = document.getElementById("current-root");
+const openFolderBtn = document.getElementById("open-folder");
+const openFileBtn = document.getElementById("open-file");
+const saveFileBtn = document.getElementById("save-file");
+const saveAsBtn = document.getElementById("save-as");
 
 const TAB = "  ";
 
@@ -484,3 +490,164 @@ document.getElementById("export-html").addEventListener("click", exportHtml);
 
 setActiveMode("split");
 updatePreview();
+
+// --- File System Access API integration ---
+let currentFileHandle = null;
+let currentDirectoryHandle = null;
+
+function fsSupported() {
+  return (
+    typeof window.showOpenFilePicker === "function" ||
+    typeof window.showDirectoryPicker === "function" ||
+    typeof window.showSaveFilePicker === "function"
+  );
+}
+
+async function readFileHandle(fileHandle) {
+  const file = await fileHandle.getFile();
+  const text = await file.text();
+  return text;
+}
+
+function fileIcon(name) {
+  return name.toLowerCase().endsWith(".md") ? "📄" : "📎";
+}
+
+function renderFileItem(name, handle, isActive = false) {
+  const item = document.createElement("div");
+  item.className = `file-item${isActive ? " active" : ""}`;
+  item.dataset.name = name;
+  item.innerHTML = `<span class="file-icon">${fileIcon(name)}</span><span class="file-name" title="${name}">${name}</span>`;
+  item.addEventListener("click", async () => {
+    try {
+      if (handle.kind === "file") {
+        const content = await readFileHandle(handle);
+        editor.value = content;
+        currentFileHandle = handle;
+        updatePreview();
+        fileTreeEl.querySelectorAll(".file-item").forEach((el) => el.classList.remove("active"));
+        item.classList.add("active");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("读取文件失败: " + (err && err.message ? err.message : err));
+    }
+  });
+  return item;
+}
+
+async function buildFileTree(dirHandle) {
+  currentDirectoryHandle = dirHandle;
+  fileTreeEl.innerHTML = "";
+  const rootLabel = dirHandle.name || "已选择目录";
+  currentRootEl.textContent = rootLabel;
+  for await (const entry of dirHandle.values()) {
+    try {
+      if (entry.kind === "file") {
+        const name = entry.name;
+        if (/\.md$/i.test(name)) {
+          const item = renderFileItem(name, entry, false);
+          fileTreeEl.appendChild(item);
+        }
+      }
+      // For simplicity, omit nested directories for now; can be expanded later.
+    } catch (e) {
+      console.warn("跳过条目:", e);
+    }
+  }
+}
+
+async function openDirectory() {
+  if (!fsSupported() || typeof window.showDirectoryPicker !== "function") {
+    alert("当前浏览器不支持目录访问 API，请使用最新的 Chrome/Edge 或启用安全上下文(HTTPS)。");
+    return;
+  }
+  try {
+    const dirHandle = await window.showDirectoryPicker();
+    await buildFileTree(dirHandle);
+  } catch (err) {
+    if (err && err.name === "AbortError") return;
+    console.error(err);
+    alert("打开目录失败: " + (err && err.message ? err.message : err));
+  }
+}
+
+async function openFile() {
+  if (!fsSupported() || typeof window.showOpenFilePicker !== "function") {
+    alert("当前浏览器不支持文件选择 API。");
+    return;
+  }
+  try {
+    const [handle] = await window.showOpenFilePicker({
+      multiple: false,
+      types: [
+        {
+          description: "Markdown 文件",
+          accept: { "text/markdown": [".md", ".markdown"] },
+        },
+      ],
+    });
+    if (handle) {
+      const content = await readFileHandle(handle);
+      editor.value = content;
+      currentFileHandle = handle;
+      updatePreview();
+    }
+  } catch (err) {
+    if (err && err.name === "AbortError") return;
+    console.error(err);
+    alert("打开文件失败: " + (err && err.message ? err.message : err));
+  }
+}
+
+async function saveToHandle(handle) {
+  const writable = await handle.createWritable();
+  await writable.write(editor.value);
+  await writable.close();
+}
+
+async function saveFile() {
+  try {
+    if (currentFileHandle) {
+      await saveToHandle(currentFileHandle);
+      return alert("已保存到当前文件。");
+    }
+    return await saveAs();
+  } catch (err) {
+    console.error(err);
+    alert("保存失败: " + (err && err.message ? err.message : err));
+  }
+}
+
+async function saveAs() {
+  if (!fsSupported() || typeof window.showSaveFilePicker !== "function") {
+    // Fallback: download
+    exportMarkdown();
+    return;
+  }
+  try {
+    const documentTitle = extractDocumentTitle(editor.value);
+    const suggestedName = `${sanitizeFilename(documentTitle)}.md`;
+    const handle = await window.showSaveFilePicker({
+      suggestedName,
+      types: [
+        {
+          description: "Markdown 文件",
+          accept: { "text/markdown": [".md", ".markdown"] },
+        },
+      ],
+    });
+    await saveToHandle(handle);
+    currentFileHandle = handle;
+    alert("保存成功。");
+  } catch (err) {
+    if (err && err.name === "AbortError") return;
+    console.error(err);
+    alert("保存失败: " + (err && err.message ? err.message : err));
+  }
+}
+
+openFolderBtn.addEventListener("click", openDirectory);
+openFileBtn.addEventListener("click", openFile);
+saveFileBtn.addEventListener("click", saveFile);
+saveAsBtn.addEventListener("click", saveAs);
