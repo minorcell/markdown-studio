@@ -194,6 +194,8 @@ body {
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06), 0 0 1px rgba(0, 0, 0, 0.04);
   overflow: hidden;
   border: 0.5px solid var(--color-border);
+  will-change: transform;
+  transform-style: preserve-3d;
 }
 
 .window-header {
