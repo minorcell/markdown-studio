@@ -33,10 +33,11 @@
         </div>
       </nav>
 
-      <!-- 英雄区域 -->
-      <section class="hero">
+      <main class="page-main" role="main">
+        <!-- 英雄区域 -->
+        <section class="hero">
         <div class="hero-content">
-          <h2 class="hero-title">优雅的 Markdown 编辑体验</h2>
+          <h1 class="hero-title">优雅的 Markdown 编辑体验</h1>
           <p class="hero-subtitle">
             实时预览、语法高亮、一键导出。让写作变得更简单、更高效。
           </p>
@@ -74,10 +75,10 @@
             </div>
           </div>
         </div>
-      </section>
+        </section>
 
-      <!-- 特性介绍 -->
-      <section id="features" class="features">
+        <!-- 特性介绍 -->
+        <section id="features" class="features">
         <div class="features-content">
           <h2 class="section-title">为什么选择 Markdown Studio</h2>
           <div class="features-grid">
@@ -113,10 +114,10 @@
             </div>
           </div>
         </div>
-      </section>
+        </section>
 
-      <!-- 使用场景 -->
-      <section class="use-cases">
+        <!-- 使用场景 -->
+        <section class="use-cases">
         <div class="use-cases-content">
           <h2 class="section-title">适用场景</h2>
           <div class="use-cases-grid">
@@ -138,16 +139,16 @@
             </div>
           </div>
         </div>
-      </section>
+        </section>
 
-      <!-- CTA 区域 -->
-      <section class="cta">
+        <!-- CTA 区域 -->
+        <section class="cta">
         <div class="cta-content">
           <h2>准备好开始了吗？</h2>
           <p>立即体验 Markdown Studio，享受流畅的写作体验</p>
           <a href="pages/editor.html" class="btn btn-large btn-primary">免费使用</a>
         </div>
-      </section>
+        </section>
 
       <!-- 页脚 -->
       <footer class="footer">
@@ -157,8 +158,9 @@
         </div>
       </footer>
     </div>
+    <!-- Scripts: moved inside body and marked as defer for valid structure and non-blocking load -->
+    <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+    <script defer src="scripts/landing.js"></script>
   </body>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-  <script src="scripts/landing.js"></script>
 </html>

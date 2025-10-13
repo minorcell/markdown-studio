@@ -8,7 +8,7 @@
     <meta name="keywords" content="Markdown, 在线编辑器, 预览, 高亮, 导出" />
     <meta name="robots" content="index,follow" />
     <link rel="canonical" href="https://minorcell.github.io/web-demos/pages/editor.html" />
-    <meta property="og:type" content="article" />
+    <meta property="og:type" content="website" />
     <meta property="og:title" content="Markdown Studio 编辑器" />
     <meta property="og:description" content="在浏览器中优雅地编辑与预览 Markdown 内容。" />
     <meta property="og:url" content="https://minorcell.github.io/web-demos/pages/editor.html" />
@@ -21,7 +21,8 @@
   <body>
     <div class="app-shell">
       <header class="toolbar">
-        <div class="toolbar-group toolbar-branding">          <a class="toolbar-title" href="../index.html" title="返回首页">Markdown Studio</a>
+        <div class="toolbar-group toolbar-branding">
+          <a class="toolbar-title" href="../index.html" title="返回首页">Markdown Studio</a>
         </div>
         <div class="toolbar-group toolbar-actions" aria-label="编辑器操作">
           <div class="segmented-control" role="group" aria-label="查看模式">
@@ -40,7 +41,9 @@
             <span class="pane-title">Markdown</span>
             <span class="pane-subtitle">以 Markdown 语法编写内容</span>
           </header>
-          <textarea id="editor" spellcheck="false"></textarea>
+          <label for="editor" class="sr-only">Markdown 输入</label>
+          <textarea id="editor" spellcheck="false" aria-describedby="editor-help"></textarea>
+          <span id="editor-help" class="sr-only">以 Markdown 语法编写内容</span>
         </section>
         <section class="pane preview-pane" aria-live="polite" aria-label="预览">
           <header class="pane-header">
