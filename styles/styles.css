@@ -97,6 +97,9 @@ body::before {
   border-bottom: 1px solid rgba(60, 60, 67, 0.2);
   background: rgba(255, 255, 255, 0.78);
   backdrop-filter: blur(18px);
+  /* Ensure toolbar overlays workspace stacking contexts (backdrop-filter creates stacking contexts) */
+  position: relative;
+  z-index: 100;
 }
 
 [data-theme="dark"] .toolbar {
@@ -268,7 +271,8 @@ body::before {
   min-width: 140px;
   padding: 6px;
   display: none;
-  z-index: 10;
+  /* Raise above panes and other UI */
+  z-index: 1000;
 }
 
 [data-theme="dark"] .menu-button .menu {
