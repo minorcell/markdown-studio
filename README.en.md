@@ -1,4 +1,4 @@
-# Markdown Studio
+# Markdown Studio  ·  [中文 README](README.md)
 
 A lightweight, browser‑based Markdown editor and preview demo. No build steps or backend required — just open `index.html` locally.
 

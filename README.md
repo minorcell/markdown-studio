@@ -1,4 +1,4 @@
-# Markdown Studio
+# Markdown Studio  ·  [English README](README.en.md)
 
 一个基于浏览器的轻量级 Markdown 编辑与预览示例应用。无需构建与后端服务，直接用本地浏览器打开即可使用。
 
