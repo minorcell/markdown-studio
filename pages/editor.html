@@ -16,6 +16,7 @@
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css"
+      data-hl-theme
     />
   </head>
   <body>
@@ -44,6 +45,8 @@
           <div class="divider" aria-hidden="true"></div>
           <button id="export-markdown" class="toolbar-button" type="button">导出 Markdown</button>
           <button id="export-html" class="toolbar-button" type="button">导出 HTML</button>
+          <div class="divider" aria-hidden="true"></div>
+          <button class="toolbar-button" type="button" data-action="toggle-theme" aria-pressed="false" title="切换主题">切换为深色</button>
         </div>
       </header>
       <main class="workspace">
@@ -71,6 +74,7 @@
       </main>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../scripts/theme.js"></script>
     <script src="../scripts/main.js"></script>
   </body>
 </html>
