@@ -11,11 +11,15 @@
   function applyTheme(theme) {
     const html = document.documentElement
     html.setAttribute('data-theme', theme)
-    // update toggle label
+    // update toggle buttons and switches
     const toggles = document.querySelectorAll('[data-action="toggle-theme"]')
     toggles.forEach(btn => {
-      btn.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false')
-      btn.textContent = theme === 'dark' ? '切换为浅色' : '切换为深色'
+      if (btn.getAttribute('role') === 'switch') {
+        btn.setAttribute('aria-checked', theme === 'dark' ? 'true' : 'false')
+      } else {
+        btn.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false')
+        btn.textContent = theme === 'dark' ? '切换为浅色' : '切换为深色'
+      }
     })
 
     // swap highlight.js theme if present
@@ -56,4 +60,3 @@
 
   document.addEventListener('DOMContentLoaded', initTheme)
 })()
-

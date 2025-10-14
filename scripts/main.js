@@ -15,6 +15,8 @@ const newFileBtn = document.getElementById("new-file");
 const deleteFileBtn = document.getElementById("delete-file");
 const toggleSidebarBtn = document.getElementById("toggle-sidebar");
 const sidebarPane = document.querySelector(".sidebar-pane");
+const fileMenuBtn = document.getElementById("file-menu");
+const exportMenuBtn = document.getElementById("export-menu");
 
 const TAB = "  ";
 
@@ -916,3 +918,27 @@ setActiveMode = function patchedSetActiveMode(mode) {
     syncScroll("editor");
   }
 };
+// simple menu toggling for compact toolbar
+document.addEventListener("click", (e) => {
+  const t = e.target;
+  if (!(t instanceof Element)) return;
+  // toggle menu buttons
+  if (t.closest("#file-menu")) {
+    const btn = document.getElementById("file-menu");
+    const expanded = btn.getAttribute("aria-expanded") === "true";
+    btn.setAttribute("aria-expanded", expanded ? "false" : "true");
+    // close other menu
+    exportMenuBtn && exportMenuBtn.setAttribute("aria-expanded", "false");
+    return;
+  }
+  if (t.closest("#export-menu")) {
+    const btn = document.getElementById("export-menu");
+    const expanded = btn.getAttribute("aria-expanded") === "true";
+    btn.setAttribute("aria-expanded", expanded ? "false" : "true");
+    fileMenuBtn && fileMenuBtn.setAttribute("aria-expanded", "false");
+    return;
+  }
+  // click outside closes menus
+  if (fileMenuBtn) fileMenuBtn.setAttribute("aria-expanded", "false");
+  if (exportMenuBtn) exportMenuBtn.setAttribute("aria-expanded", "false");
+});

@@ -43,10 +43,26 @@
           <div class="divider" aria-hidden="true"></div>
           <button id="toggle-sidebar" class="toolbar-button" type="button">隐藏侧栏</button>
           <div class="divider" aria-hidden="true"></div>
-          <button id="export-markdown" class="toolbar-button" type="button">导出 Markdown</button>
-          <button id="export-html" class="toolbar-button" type="button">导出 HTML</button>
+          <div class="menu-button toolbar-button" id="file-menu" aria-haspopup="true" aria-expanded="false">文件
+            <div class="menu" role="menu">
+              <button id="open-folder" class="menu-item" role="menuitem" type="button">打开目录</button>
+              <button id="open-file" class="menu-item" role="menuitem" type="button">打开文件</button>
+              <button id="save-file" class="menu-item" role="menuitem" type="button">保存</button>
+              <button id="save-as" class="menu-item" role="menuitem" type="button">另存为</button>
+              <button id="new-file" class="menu-item" role="menuitem" type="button">新建文件</button>
+              <button id="delete-file" class="menu-item" role="menuitem" type="button">删除文件</button>
+            </div>
+          </div>
+          <div class="menu-button toolbar-button" id="export-menu" aria-haspopup="true" aria-expanded="false">导出
+            <div class="menu" role="menu">
+              <button id="export-markdown" class="menu-item" role="menuitem" type="button">导出 Markdown</button>
+              <button id="export-html" class="menu-item" role="menuitem" type="button">导出 HTML</button>
+            </div>
+          </div>
           <div class="divider" aria-hidden="true"></div>
-          <button class="toolbar-button" type="button" data-action="toggle-theme" aria-pressed="false" title="切换主题">切换为深色</button>
+          <button class="switch" type="button" role="switch" aria-checked="false" data-action="toggle-theme" aria-label="切换深浅主题">
+            <span class="thumb" aria-hidden="true"></span>
+          </button>
         </div>
       </header>
       <main class="workspace">
