@@ -13,6 +13,7 @@
     <meta property="og:description" content="在浏览器中优雅地编辑与预览 Markdown 内容。" />
     <meta property="og:url" content="https://minorcell.github.io/web-demos/pages/editor.html" />
     <link rel="stylesheet" href="../styles/styles.css" />
+    <link rel="stylesheet" href="../styles/settings.css" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css"
@@ -23,66 +24,89 @@
     <div class="app-shell">
       <header class="toolbar">
         <div class="toolbar-group toolbar-branding">
-          <a class="toolbar-title" href="../index.html" title="返回首页">Markdown Studio</a>
+          <a class="toolbar-title" href="../index.html" title="返回首页" data-i18n="toolbar.title">Markdown Studio</a>
         </div>
         <div class="toolbar-group toolbar-actions" aria-label="编辑器操作">
           <div class="divider" aria-hidden="true"></div>
           <div class="segmented-control" role="group" aria-label="查看模式">
-            <button id="editor-only" class="segmented-button" type="button" aria-pressed="false">仅编辑</button>
-            <button id="split-view" class="segmented-button" type="button" aria-pressed="true">分屏</button>
-            <button id="preview-only" class="segmented-button" type="button" aria-pressed="false">仅预览</button>
+            <button id="editor-only" class="segmented-button" type="button" aria-pressed="false" data-i18n="view.editorOnly">仅编辑</button>
+            <button id="split-view" class="segmented-button" type="button" aria-pressed="true" data-i18n="view.split">分屏</button>
+            <button id="preview-only" class="segmented-button" type="button" aria-pressed="false" data-i18n="view.previewOnly">仅预览</button>
           </div>
           <div class="divider" aria-hidden="true"></div>
-          <button id="toggle-sidebar" class="toolbar-button" type="button">隐藏侧栏</button>
+          <button id="toggle-sidebar" class="toolbar-button" type="button" data-i18n="toggle.sidebar">隐藏侧栏</button>
           <div class="divider" aria-hidden="true"></div>
-          <div class="menu-button toolbar-button" id="file-menu" aria-haspopup="true" aria-expanded="false">文件
+          <div class="menu-button toolbar-button" id="file-menu" aria-haspopup="true" aria-expanded="false" data-i18n="menu.file">文件
             <div class="menu" role="menu">
-              <button id="open-folder" class="menu-item" role="menuitem" type="button">打开目录</button>
-              <button id="open-file" class="menu-item" role="menuitem" type="button">打开文件</button>
-              <button id="save-file" class="menu-item" role="menuitem" type="button">保存</button>
-              <button id="save-as" class="menu-item" role="menuitem" type="button">另存为</button>
-              <button id="new-file" class="menu-item" role="menuitem" type="button">新建文件</button>
-              <button id="delete-file" class="menu-item" role="menuitem" type="button">删除文件</button>
+              <button id="open-folder" class="menu-item" role="menuitem" type="button" data-i18n="menu.openFolder">打开目录</button>
+              <button id="open-file" class="menu-item" role="menuitem" type="button" data-i18n="menu.openFile">打开文件</button>
+              <button id="save-file" class="menu-item" role="menuitem" type="button" data-i18n="menu.save">保存</button>
+              <button id="save-as" class="menu-item" role="menuitem" type="button" data-i18n="menu.saveAs">另存为</button>
+              <button id="new-file" class="menu-item" role="menuitem" type="button" data-i18n="menu.newFile">新建文件</button>
+              <button id="delete-file" class="menu-item" role="menuitem" type="button" data-i18n="menu.deleteFile">删除文件</button>
             </div>
           </div>
-          <div class="menu-button toolbar-button" id="export-menu" aria-haspopup="true" aria-expanded="false">导出
+          <div class="menu-button toolbar-button" id="export-menu" aria-haspopup="true" aria-expanded="false" data-i18n="menu.export">导出
             <div class="menu" role="menu">
-              <button id="export-markdown" class="menu-item" role="menuitem" type="button">导出 Markdown</button>
-              <button id="export-html" class="menu-item" role="menuitem" type="button">导出 HTML</button>
+              <button id="export-markdown" class="menu-item" role="menuitem" type="button" data-i18n="menu.export.md">导出 Markdown</button>
+              <button id="export-html" class="menu-item" role="menuitem" type="button" data-i18n="menu.export.html">导出 HTML</button>
             </div>
           </div>
           <div class="divider" aria-hidden="true"></div>
-          <button class="switch" type="button" role="switch" aria-checked="false" data-action="toggle-theme" aria-label="切换深浅主题">
+          <button class="switch" type="button" role="switch" aria-checked="false" data-action="toggle-theme" aria-label="切换深浅主题" data-i18n-attr="aria-label">
             <span class="thumb" aria-hidden="true"></span>
           </button>
+          <button id="open-settings" class="toolbar-button" type="button" aria-label="设置" data-i18n="settings.open" data-i18n-attr="aria-label">⚙️</button>
         </div>
       </header>
       <main class="workspace">
         <aside class="pane sidebar-pane" aria-label="文件浏览器">
           <header class="pane-header">
-            <span class="pane-title">文件</span>
-            <span class="pane-subtitle" id="current-root">未选择目录</span>
+            <span class="pane-title" data-i18n="pane.sidebar.files">文件</span>
+            <span class="pane-subtitle" id="current-root" data-i18n="pane.sidebar.emptyRoot">未选择目录</span>
           </header>
           <nav id="file-tree" class="file-tree" aria-label="文件树"></nav>
         </aside>
         <section class="pane editor-pane" aria-label="Markdown 编辑器">
           <header class="pane-header">
-            <span class="pane-title">Markdown</span>
+            <span class="pane-title" data-i18n="pane.editor.title">Markdown</span>
           </header>
-          <label for="editor" class="sr-only">Markdown 输入</label>
+          <label for="editor" class="sr-only" data-i18n="sr.editor.label">Markdown 输入</label>
           <textarea id="editor" spellcheck="false"></textarea>
         </section>
         <section class="pane preview-pane" aria-live="polite" aria-label="预览">
           <header class="pane-header">
-            <span class="pane-title">预览</span>
-            <span class="pane-subtitle">实时渲染效果</span>
+            <span class="pane-title" data-i18n="pane.preview.title">预览</span>
+            <span class="pane-subtitle" data-i18n="pane.preview.subtitle">实时渲染效果</span>
           </header>
           <article id="preview" class="preview-content"></article>
         </section>
       </main>
+      <!-- Settings drawer -->
+      <aside id="settings-drawer" class="settings-drawer" aria-hidden="true">
+        <header class="settings-header" data-i18n="settings.title">设置</header>
+        <div class="settings-item">
+          <span class="settings-label" data-i18n="settings.lang">界面语言</span>
+          <div class="segmented-control" role="group">
+            <button class="segmented-button" type="button" data-action="toggle-lang" data-lang="zh" data-i18n="lang.zh">中文</button>
+            <button class="segmented-button" type="button" data-action="toggle-lang" data-lang="en" data-i18n="lang.en">English</button>
+          </div>
+        </div>
+        <div class="settings-item">
+          <span class="settings-label" data-i18n="settings.theme">主题</span>
+          <button class="switch" type="button" role="switch" aria-checked="false" data-action="toggle-theme" aria-label="切换深浅主题" data-i18n-attr="aria-label">
+            <span class="thumb" aria-hidden="true"></span>
+          </button>
+        </div>
+        <div class="settings-actions">
+          <button class="settings-close" type="button" data-action="close-settings">关闭</button>
+        </div>
+      </aside>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="../scripts/theme.js"></script>
+    <script src="../scripts/i18n.js"></script>
+    <script>window.MDS_I18N && window.MDS_I18N.init()</script>
     <script src="../scripts/main.js"></script>
   </body>
 </html>

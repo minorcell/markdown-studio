@@ -1,0 +1,30 @@
+/* Settings drawer styles */
+.settings-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 320px;
+  max-width: 85vw;
+  background: var(--surface);
+  box-shadow: -8px 0 24px rgba(0,0,0,0.15);
+  border-left: 1px solid var(--border);
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+  z-index: 1000;
+}
+.settings-drawer.open { transform: translateX(0); }
+.settings-header {
+  padding: 16px 20px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+}
+.settings-item {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.settings-label { display: block; margin-bottom: 8px; color: var(--muted); }
+.settings-actions { padding: 12px 20px; display: flex; gap: 8px; justify-content: flex-end; }
+.settings-close { background: transparent; border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+
+[data-theme="dark"] .settings-drawer { background: var(--surface); border-left-color: var(--border); }
