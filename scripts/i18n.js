@@ -194,6 +194,7 @@
       })
       // Close when clicking overlay or close button
       drawer.addEventListener('click', (e) => {
+        // Close when clicking on the backdrop (drawer itself) or the explicit close button
         if (e.target === drawer || e.target.closest('[data-action="close-settings"]')) {
           drawer.setAttribute('aria-hidden', 'true')
           drawer.classList.remove('open')
