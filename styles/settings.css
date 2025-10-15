@@ -6,19 +6,20 @@
   bottom: 0;
   width: 320px;
   max-width: 85vw;
-  background: var(--surface);
+  background: var(--color-surface, #ffffff); /* opaque surface */
   box-shadow: -8px 0 24px rgba(0,0,0,0.15);
-  border-left: 1px solid var(--border);
+  border-left: 1px solid var(--color-border, var(--panel-border));
   transform: translateX(100%);
   transition: transform 0.25s ease;
   z-index: 10000; /* ensure above all page content */
 }
 .settings-drawer.open { transform: translateX(0); }
+/* Use a dedicated overlay element to ensure correct stacking and opaque backdrop */
 .settings-drawer::before {
   content: "";
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.35);
+  background: rgba(0,0,0,0.45);
   z-index: -1; /* behind drawer panel but above page */
   opacity: 0; /* hidden by default */
   pointer-events: none; /* disabled by default */
@@ -29,16 +30,61 @@
   pointer-events: auto; /* enable overlay interactions when open */
 }
 .settings-header {
+  position: relative;
   padding: 16px 20px;
   font-weight: 600;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--color-border, var(--panel-border));
 }
 .settings-item {
   padding: 16px 20px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--color-border, var(--panel-border));
 }
-.settings-label { display: block; margin-bottom: 8px; color: var(--muted); }
+.settings-label { display: block; margin-bottom: 8px; color: var(--color-text-secondary, var(--text-secondary)); }
 .settings-actions { padding: 12px 20px; display: flex; gap: 8px; justify-content: flex-end; }
-.settings-close { background: transparent; border: 1px solid var(--border); padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+/* Move close action to header top-right for Apple-like placement */
+.settings-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: transparent;
+  border: 1px solid var(--color-border, var(--panel-border));
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+}
 
-[data-theme="dark"] .settings-drawer { background: var(--surface); border-left-color: var(--border); }
+[data-theme="dark"] .settings-drawer {
+  background: var(--color-surface, #1c1c1e);
+  border-left-color: var(--color-border, var(--panel-border));
+}
+
+/* Apple-style segmented control for language switch (used in settings drawer) */
+.segmented-control {
+  display: inline-flex;
+  border-radius: 8px;
+  padding: 2px;
+  background: rgba(142, 142, 147, 0.14);
+  border: 1px solid var(--color-border, rgba(60, 60, 67, 0.08));
+}
+
+.segmented-button {
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary, rgba(60, 60, 67, 0.55));
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.segmented-button[aria-pressed="true"] {
+  background: #ffffff;
+  color: var(--color-accent, #0a84ff);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+}
+
+.segmented-button:hover {
+  color: var(--color-accent, #0a84ff);
+}
