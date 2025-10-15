@@ -160,6 +160,11 @@
       if (attr) el.setAttribute(attr, text)
       else el.textContent = text
     })
+    // Reflect current language selection in segmented control
+    document.querySelectorAll('[data-action="toggle-lang"][data-lang]').forEach((btn) => {
+      const isActive = btn.getAttribute('data-lang') === lang
+      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false')
+    })
     // Update any theme switch aria-labels
     document.querySelectorAll('[data-action="toggle-theme"]').forEach((btn) => {
       btn.setAttribute('aria-label', dict[lang]['theme.aria'])
@@ -185,7 +190,13 @@
     document.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-action="toggle-lang"][data-lang]')
       if (btn) {
-        setLang(btn.getAttribute('data-lang'))
+        const next = btn.getAttribute('data-lang')
+        setLang(next)
+        // update pressed states immediately for visual feedback
+        document.querySelectorAll('[data-action="toggle-lang"][data-lang]').forEach((b) => {
+          const active = b.getAttribute('data-lang') === next
+          b.setAttribute('aria-pressed', active ? 'true' : 'false')
+        })
       }
     })
     // Settings drawer basic wiring

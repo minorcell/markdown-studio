@@ -58,3 +58,33 @@
   background: var(--color-surface, #1c1c1e);
   border-left-color: var(--color-border, var(--panel-border));
 }
+
+/* Apple-style segmented control for language switch (used in settings drawer) */
+.segmented-control {
+  display: inline-flex;
+  border-radius: 8px;
+  padding: 2px;
+  background: rgba(142, 142, 147, 0.14);
+  border: 1px solid var(--color-border, rgba(60, 60, 67, 0.08));
+}
+
+.segmented-button {
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary, rgba(60, 60, 67, 0.55));
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.segmented-button[aria-pressed="true"] {
+  background: #ffffff;
+  color: var(--color-accent, #0a84ff);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+}
+
+.segmented-button:hover {
+  color: var(--color-accent, #0a84ff);
+}
