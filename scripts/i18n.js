@@ -8,6 +8,7 @@
       // Common
       'settings.open': '设置',
       'settings.title': '设置',
+      'settings.close': '关闭',
       'settings.lang': '界面语言',
       'settings.theme': '主题',
       'lang.zh': '中文',
@@ -75,6 +76,7 @@
       // Common
       'settings.open': 'Settings',
       'settings.title': 'Settings',
+      'settings.close': 'Close',
       'settings.lang': 'Interface Language',
       'settings.theme': 'Theme',
       'lang.zh': '中文',

@@ -168,7 +168,9 @@
     <script defer src="scripts/landing.js"></script>
     <!-- Settings drawer -->
     <aside id="settings-drawer" class="settings-drawer" aria-hidden="true">
-      <header class="settings-header" data-i18n="settings.title">设置</header>
+      <header class="settings-header" data-i18n="settings.title">设置
+        <button class="settings-close" type="button" data-action="close-settings" data-i18n="settings.close">关闭</button>
+      </header>
       <div class="settings-item">
         <span class="settings-label" data-i18n="settings.lang">界面语言</span>
         <div class="segmented-control" role="group">
@@ -182,9 +184,7 @@
           <span class="thumb" aria-hidden="true"></span>
         </button>
       </div>
-      <div class="settings-actions">
-        <button class="settings-close" type="button" data-action="close-settings">关闭</button>
-      </div>
+      <div class="settings-actions"></div>
     </aside>
   </body>
 </html>
