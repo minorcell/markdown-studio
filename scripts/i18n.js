@@ -176,6 +176,8 @@
   }
 
   function initI18n() {
+    if (window.__MDS_I18N_INITED) return
+    window.__MDS_I18N_INITED = true
     const lang = getPreferredLang()
     applyI18n(lang)
     document.addEventListener('click', (e) => {
