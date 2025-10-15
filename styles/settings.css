@@ -20,7 +20,13 @@
   inset: 0;
   background: rgba(0,0,0,0.35);
   z-index: -1; /* behind drawer panel but above page */
-  pointer-events: auto; /* capture clicks to allow closing */
+  opacity: 0; /* hidden by default */
+  pointer-events: none; /* disabled by default */
+  transition: opacity 0.2s ease;
+}
+.settings-drawer.open::before {
+  opacity: 1;
+  pointer-events: auto; /* enable overlay interactions when open */
 }
 .settings-header {
   padding: 16px 20px;
