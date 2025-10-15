@@ -176,6 +176,8 @@
   }
 
   function initI18n() {
+    if (window.__MDS_I18N_INITED) return
+    window.__MDS_I18N_INITED = true
     const lang = getPreferredLang()
     applyI18n(lang)
     document.addEventListener('click', (e) => {
@@ -192,12 +194,15 @@
         drawer.setAttribute('aria-hidden', 'false')
         drawer.classList.add('open')
       })
+      // Close when clicking overlay or close button
       drawer.addEventListener('click', (e) => {
+        // Close when clicking on the backdrop (drawer itself) or the explicit close button
         if (e.target === drawer || e.target.closest('[data-action="close-settings"]')) {
           drawer.setAttribute('aria-hidden', 'true')
           drawer.classList.remove('open')
         }
       })
+      // Close on Escape
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
           drawer.setAttribute('aria-hidden', 'true')
@@ -209,5 +214,6 @@
 
   // expose init globally
   window.MDS_I18N = { init: initI18n, setLang }
+  // auto-initialize on DOM ready to ensure settings works on homepage
+  document.addEventListener('DOMContentLoaded', initI18n)
 })()
-
