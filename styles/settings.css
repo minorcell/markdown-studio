@@ -11,9 +11,16 @@
   border-left: 1px solid var(--border);
   transform: translateX(100%);
   transition: transform 0.25s ease;
-  z-index: 1000;
+  z-index: 10000; /* ensure above all page content */
 }
 .settings-drawer.open { transform: translateX(0); }
+.settings-drawer::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: -1; /* behind drawer panel but above page */
+}
 .settings-header {
   padding: 16px 20px;
   font-weight: 600;

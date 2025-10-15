@@ -192,12 +192,14 @@
         drawer.setAttribute('aria-hidden', 'false')
         drawer.classList.add('open')
       })
+      // Close when clicking overlay or close button
       drawer.addEventListener('click', (e) => {
         if (e.target === drawer || e.target.closest('[data-action="close-settings"]')) {
           drawer.setAttribute('aria-hidden', 'true')
           drawer.classList.remove('open')
         }
       })
+      // Close on Escape
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
           drawer.setAttribute('aria-hidden', 'true')
@@ -209,5 +211,6 @@
 
   // expose init globally
   window.MDS_I18N = { init: initI18n, setLang }
+  // auto-initialize on DOM ready to ensure settings works on homepage
+  document.addEventListener('DOMContentLoaded', initI18n)
 })()
-
