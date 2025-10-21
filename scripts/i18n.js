@@ -157,8 +157,25 @@
       const key = el.getAttribute('data-i18n')
       const text = (dict[lang] && dict[lang][key]) || key
       const attr = el.getAttribute('data-i18n-attr')
-      if (attr) el.setAttribute(attr, text)
-      else el.textContent = text
+      if (attr) {
+        el.setAttribute(attr, text)
+        return
+      }
+
+      if (el.childElementCount === 0) {
+        el.textContent = text
+        return
+      }
+
+      const textNode = Array.from(el.childNodes).find(
+        (node) => node.nodeType === Node.TEXT_NODE
+      )
+
+      if (textNode) {
+        textNode.textContent = text
+      } else {
+        el.insertBefore(document.createTextNode(text), el.firstChild)
+      }
     })
     // Reflect current language selection in segmented control
     document.querySelectorAll('[data-action="toggle-lang"][data-lang]').forEach((btn) => {
