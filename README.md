@@ -1,4 +1,6 @@
-# Markdown Studio · [English](README.en.md)
+# Markdown Studio
+
+[English](README.en.md)
 
 一个无需构建、直接用浏览器打开的轻量级 Markdown 编辑器示例。
 
